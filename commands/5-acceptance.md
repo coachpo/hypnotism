@@ -1,55 +1,43 @@
 ---
-description: Independently verify the delivered work using only the supplied brief, evidence, and instructions; sign off or return defects with full traceability.
+description: Independently verify the delivered work using the supplied payload, evidence, and commands; approve or reject with full traceability.
 ---
 
+## Stage Overview
+- Reproduce the implementer’s validation steps and add exploratory coverage where risk warrants.
+- Compare observed behavior against acceptance criteria, plan steps, and documented tests.
+- Provide a clear go/no-go decision plus defects with reproduction details when needed.
+
 ## Shared Payload Contract
-- File: `handoff/payload.json`
-- Required fields before starting: `requirement.summary`, `plan.steps`, `testPlan.scenarios`, `implementation.changes`.
-- Must update:
+- **File:** `handoff/payload.json`
+- **Required before starting:** `requirement.summary`, `plan.steps`, `testPlan.scenarios`, `implementation.changes` (with accompanying tests/commands).
+- **Must update:**
   - `meta.currentStage = "5-acceptance"`, `meta.lastUpdatedBy`, `meta.lastUpdatedAt`.
-  - `qaFindings.status` (`approved`, `rejected`, `blocked`), `qaFindings.evidence`, `qaFindings.issues`.
-  - Append pass/fail annotations to `testPlan.scenarios[*].status` when validated.
+  - `qaFindings.status` (`approved`, `rejected`, `blocked`), `qaFindings.evidence`, `qaFindings.issues` (each issue includes steps, expected vs. actual, severity, owner).
+  - Append pass/fail or blocked annotations to relevant `testPlan.scenarios[*].status` entries.
 
-## User Input — complete QA packet required
+## Tooling & Evidence Expectations
+- **MCP Reference First:** Follow `mcp/mcp_registry.md` and `mcp/mcp_rules.md` when picking tooling. Use the registry’s preferred MCP server (e.g., Serena for code verification, DeepWiki/Context7 for docs, Desktop Commander for execution) before defaulting to other methods.
+- Desktop Commander for repo inspection, command execution, and artifact capture.
+- Serena for verifying symbol changes, referencing call graphs, and confirming affected files.
+- DeepWiki / Context7 when acceptance requires comparing behavior against external specs or contracts.
+- Maintain an audit trail of commands, logs, screenshots, or metrics snapshots attached to `qaFindings.evidence`.
 
+## Workflow
+1. **Intake & Risk Review** – Parse the payload for acceptance criteria, residual risks, feature flags, rollout notes, and validation commands. Rebuild the QA checklist directly from these artifacts.
+2. **Evidence Inspection** – Use repository tools to inspect diffs, configs, telemetry updates, and tests referenced in `implementation.changes`. Confirm conventions match existing patterns surfaced during planning.
+3. **Automated Validation** – Re-run every command listed in `implementation.commands`/`testPlan`. Capture outputs, exit codes, and timestamps; compare results to expected thresholds (coverage, latency, error budgets).
+4. **Exploratory & Negative Testing** – Exercise edge cases, rollback paths, and observability hooks using realistic data/fixtures from the payload. Document additional commands or manual steps taken.
+5. **Criteria Comparison & Traceability** – For each acceptance criterion and plan step, mark pass/fail with links to evidence. Update `testPlan.scenarios[*].status` to reflect actual outcomes.
+6. **Decision & Reporting** – If all checks pass, set `qaFindings.status = "approved"` and summarize residual risks plus rerun instructions. If defects emerge, set status to `rejected` or `blocked`, create detailed issue entries, and notify the implementation owner.
+7. **Payload Finalization** – Ensure all findings, evidence links, and follow-up actions are stored in `handoff/payload.json` so the project record remains self-contained.
+
+## Outputs & Handoff
+- Signed QA decision with reproducible evidence.
+- Updated scenario statuses and issue list routed to owners.
+- Clear instructions for rerunning validation or addressing blockers.
+
+## Required User Input
 ```text
 $ARGUMENTS
 ```
-
-If critical context is missing or contradictory, pause and request clarification before executing tests.
-
----
-
-# Acceptance Workflow
-
-## 0. Intake & Risk Review
-- Parse the input for acceptance criteria, telemetry/config expectations, verification commands, and residual risks; rely on no other files.
-- Convert these details into a QA checklist that tracks pass/fail status for every criterion.
-- Flag ambiguous items or missing evidence and request updates before continuing.
-- Recreate the implementer’s discovery trail: rerun key `start_search`/`rg` lookups for the modified symbols and configs so you understand exactly where changes landed. Store the resulting file + line references inside your checklist.
-- If the brief references external specs or contracts, fetch the authoritative versions via **DeepWiki** or **Context7** before testing and cite the sections used for comparison.
-
-## 1. Evidence Inspection
-- Examine the referenced code paths and notes using **Desktop Commander** (`read_file`, `start_search`) or **Serena** (`find_symbol`, `find_referencing_symbols`) to confirm what changed.
-- Validate that the documented tests correspond to the stated behaviors and that traceability links remain intact.
-- When new functions were added, compare them against similar existing implementations surfaced via your repository searches to ensure conventions were preserved.
-
-## 2. Automated Validation
-- Run every prescribed command (e.g., `make test`, `go test ./...`, contract/coverage jobs) via **Desktop Commander** (`start_process`, `interact_with_process`).
-- Capture logs, exit codes, and coverage artifacts; confirm thresholds meet or exceed the input’s expectations.
-- Investigate failures, collect repro data, and compare outcomes against the documented expected results.
-- If test evidence references snapshots or fixtures, use `start_search` to confirm they are unique updates rather than regressions elsewhere in the tree.
-
-## 3. Exploratory / Manual Checks
-- Using realistic configs/fixtures from the brief, exercise the new paths (API calls, CLI flows, telemetry outputs).
-- Validate edge cases, rollback behavior, and error handling; store inputs/outputs, screenshots, or metrics snapshots as evidence.
-- Confirm any external dashboards, alerts, or documentation updates reflect the change.
-
-## 4. Criteria Comparison
-- For each acceptance criterion, compare observed behavior with expectations and record pass/fail plus reproduction details.
-- Maintain a findings log noting endpoints, files, or commands involved so issues can be reproduced quickly.
-
-## 5. Decision & Reporting
-- If all checks pass, produce a sign-off summary that lists commands run, artifacts captured, and residual risks, then set `qaFindings.status = "approved"`.
-- If gaps remain, generate clear bug reports (`qaFindings.issues`) detailing steps to reproduce, expected results, and links to logs/artifacts.
-- Share outcomes (pass/fail) and next steps with stakeholders, referencing the payload so traceability is preserved.
+Acceptance relies solely on the provided payload and evidence. Request missing context before attempting validation.
