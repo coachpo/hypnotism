@@ -3,17 +3,18 @@ description: Independently verify the delivered work using the supplied payload,
 ---
 
 ## Stage Overview
-- Reproduce the implementer’s validation steps and add exploratory coverage where risk warrants.
-- Compare observed behavior against acceptance criteria, plan steps, task backlog entries, and documented tests.
-- Provide a clear go/no-go decision plus defects with reproduction details when needed.
+- Reproduce the implementer’s validation steps exactly, then layer exploratory/negative checks targeting the riskiest plan steps and leaf tasks.
+- Compare observed behavior against requirements, plan steps, parent/leaf tasks, and QA scenarios/commands to ensure nothing regressed or fell through.
+- Produce a defensible go/no-go decision with linked evidence, defect details, and instructions for rerunning validation.
 
 ## Shared Payload Contract
 - **File:** `handoff/payload.json`
-- **Required before starting:** `requirement.summary`, `plan.steps`, `tasks.items`, `testPlan.scenarios`, `implementation.changes` (with accompanying tests/commands).
+- **Required before starting:** `requirement.summary`, `plan.steps`, `tasks.items` (with parent-child linkage), `testPlan.scenarios`, `testPlan.validationCommands`, `implementation.changes`, `implementation.tests`, `implementation.commands` (with evidence references).
 - **Must update:**
   - `meta.currentStage = "6-acceptance"`, `meta.lastUpdatedBy`, `meta.lastUpdatedAt`.
-  - `qaFindings.status` (`approved`, `rejected`, `blocked`), `qaFindings.evidence`, `qaFindings.issues` (each issue includes steps, expected vs. actual, severity, owner).
-  - Append pass/fail or blocked annotations to relevant `tasks.items[*].status` and `testPlan.scenarios[*].status` entries when validated.
+  - `qaFindings.status` (`approved`, `rejected`, `blocked`), `qaFindings.evidence` (command outputs, logs, screenshots, metrics), `qaFindings.issues` (each issue includes traceable IDs, steps, expected vs. actual, severity, owner, reproduction assets).
+  - `qaFindings.validationLog` (chronological record of commands/tests executed, outcomes, timestamps) if not already present.
+  - Append pass/fail/blocked annotations to every validated `tasks.items[*]` (leaf and parent) and `testPlan.scenarios[*]`; ensure notes cite evidence IDs.
 
 ## Tooling & Evidence Expectations
 - **MCP Reference First:** Follow `mcp/mcp_registry.md` and `mcp/mcp_rules.md` when picking tooling. Use the registry’s preferred MCP server (e.g., Serena for code verification, DeepWiki/Context7 for docs, Desktop Commander for execution, `mcp-shrimp-task-manager` for task status updates) before defaulting to other methods.
@@ -23,18 +24,18 @@ description: Independently verify the delivered work using the supplied payload,
 - Maintain an audit trail of commands, logs, screenshots, or metrics snapshots attached to `qaFindings.evidence`.
 
 ## Workflow
-1. **Intake & Risk Review** – Parse the payload for acceptance criteria, residual risks, feature flags, rollout notes, task statuses, and validation commands. Rebuild the QA checklist directly from these artifacts.
-2. **Evidence Inspection** – Use repository tools to inspect diffs, configs, telemetry updates, and tests referenced in `implementation.changes`. Confirm conventions match existing patterns surfaced during planning/tasks/QA.
-3. **Automated Validation** – Re-run every command listed in `implementation.commands`/`testPlan`. Capture outputs, exit codes, and timestamps; compare results to expected thresholds (coverage, latency, error budgets).
-4. **Exploratory & Negative Testing** – Exercise edge cases, rollback paths, and observability hooks using realistic data/fixtures from the payload. Document additional commands or manual steps taken.
-5. **Criteria Comparison & Traceability** – For each acceptance criterion, plan step, task, and scenario, mark pass/fail with links to evidence. Update `tasks.items[*].status` and `testPlan.scenarios[*].status` to reflect actual outcomes.
-6. **Decision & Reporting** – If all checks pass, set `qaFindings.status = "approved"` and summarize residual risks plus rerun instructions. If defects emerge, set status to `rejected` or `blocked`, create detailed issue entries, and notify the implementation owner.
-7. **Payload Finalization** – Ensure all findings, evidence links, and follow-up actions are stored in `handoff/payload.json` so the project record remains self-contained. Hand off the final payload alongside deployment/release notes if applicable.
+1. **Intake & Risk Review** – Parse payload + `$ARGUMENTS` for acceptance criteria, residual risks, feature flags, rollout notes, and prioritized leaf tasks. Build a validation checklist aligned with `testPlan.validationCommands` and note any missing evidence before proceeding.
+2. **Evidence Inspection** – Walk through `implementation.changes`, diffs, configs, telemetry updates, and tests to confirm they map to referenced requirements/plan steps/tasks. Verify that coverage claims match `testPlan.scenarios` and record discrepancies.
+3. **Automated Validation** – Re-run every documented command from `implementation.commands` and `testPlan.validationCommands`. Capture raw outputs, exit codes, metrics, and timestamps inside `qaFindings.validationLog`. Compare against expected thresholds (coverage, performance, error budgets) and flag deviations immediately.
+4. **Exploratory & Negative Testing** – Extend beyond scripted steps to probe edge cases, rollback paths, feature-flag toggles, and observability hooks using payload fixtures. Document any new commands or manual procedures plus resulting evidence IDs.
+5. **Criteria & Traceability Audit** – For each acceptance criterion, plan step, parent task, leaf task, and scenario, determine pass/fail/blocked outcomes referencing the collected evidence. Update `tasks.items[*].status`, `testPlan.scenarios[*].status`, and note parent roll-ups when child leaves fail.
+6. **Decision & Reporting** – Set `qaFindings.status` (`approved`, `rejected`, `blocked`) based on aggregate results. When issues exist, add detailed entries with reproduction steps, expected vs. actual behavior, severity, owner, and links to validation logs. Summarize residual risk even when approved.
+7. **Payload Finalization & Handoff** – Ensure all findings, validation logs, and issue references are persisted in `handoff/payload.json`. Highlight any follow-up tasks or required redeploy steps and notify release owners that acceptance is complete.
 
 ## Outputs & Handoff
-- Signed QA decision with reproducible evidence across tasks and scenarios.
-- Updated task and scenario statuses plus issue list routed to owners.
-- Clear instructions for rerunning validation or addressing blockers before release.
+- Signed QA decision anchored by `qaFindings.validationLog` and evidence artifacts that trace back to each requirement/plan/task/scenario.
+- Updated task and scenario statuses (parent + leaf) plus issue lists routed to owning engineers or epics.
+- Explicit rerun instructions, including commands, data prerequisites, feature-flag states, and any blockers that postpone release.
 
 ## Required User Input
 ```text

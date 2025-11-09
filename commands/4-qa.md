@@ -3,17 +3,19 @@ description: Convert the shared requirement + plan + task backlog into a concret
 ---
 
 ## Stage Overview
-- Guarantee every acceptance criterion, plan step, and task has matching coverage.
-- Define the right mix of unit, integration, contract, end-to-end, and exploratory tests.
-- Produce fixtures, scenario tables, and execution commands so implementation can code and validate confidently.
+- Guarantee every acceptance criterion, plan step, and atomic task (leaf) has explicit, testable coverage mapped to observable behaviors.
+- Define the right mix of unit, integration, contract, end-to-end, and exploratory tests, including justification and owner per scenario.
+- Produce fixtures, scenario tables, and repeatable execution commands so implementation can pick up any task and know exactly how to validate it in isolation and in-system.
 
 ## Shared Payload Contract
 - **File:** `handoff/payload.json`
-- **Required before starting:** `requirement.summary`, `plan.steps` (non-empty), `tasks.items` (non-empty backlog).
+- **Required before starting:** `requirement.summary`, `plan.steps` (non-empty), `tasks.items` (non-empty backlog with parent-child linkage).
 - **Must update:**
   - `meta.currentStage = "4-qa"`, `meta.lastUpdatedBy`, `meta.lastUpdatedAt`.
-  - `testPlan.coverageMatrix`, `testPlan.scenarios`, `testPlan.fixtures` (tie each entry back to requirement IDs, plan step IDs, and task IDs).
-  - Append clarifications to `requirement.openQuestions` or `tasks.statusSummary` when quality gaps remain, but do not overwrite other sections.
+  - `testPlan.coverageMatrix`, `testPlan.scenarios`, `testPlan.fixtures` (each row references requirement IDs, plan step IDs, parent task IDs, and the specific leaf task IDs covered).
+  - `testPlan.validationCommands` (if absent) describing how to run each scenario or suite, including data/fixture prerequisites.
+  - Append clarifications to `requirement.openQuestions` or `tasks.statusSummary` when coverage gaps or blockers remain; never overwrite other sections.
+  - Confirm `tasks.statusSummary` reflects any QA-driven ready/blocked state changes discovered while designing coverage.
 
 ## Tooling & Evidence Expectations
 - **MCP Reference First:** Always consult `mcp/mcp_registry.md` and follow `mcp/mcp_rules.md` when selecting tooling. Choose the registry’s preferred MCP server for each activity (analysis, documentation, automation) before falling back to local commands.
@@ -24,14 +26,14 @@ description: Convert the shared requirement + plan + task backlog into a concret
 - Sequential Thinking to walk through coverage mapping before locking scenarios.
 
 ## Workflow
-1. **Precondition Check** – Ensure the payload contains clear acceptance criteria, plan steps, and a task backlog. If anything is missing or stale, block and escalate.
-2. **Coverage Mapping** – Build a traceability matrix linking each requirement + plan step + task to observable behaviors (responses, events, telemetry, error states). Note overlap and redundancy explicitly.
-3. **Test Level Selection** – Decide the appropriate test layer for every behavior (unit, integration, contract, E2E, exploratory). Justify the choice with repository evidence (file + line) in `testPlan.coverageMatrix`.
-4. **Scenario Definition** – Describe each test scenario with inputs, expected outputs, edge cases, failure modes, and status (planned/blocked/deferred). Provide table schemas when table-driven testing applies.
-5. **Fixtures, Data, and Tooling** – Catalog the fixtures, mocks, snapshots, data sets, and helper utilities required. Reference existing assets discovered via searches before proposing new files.
-6. **Success Criteria & Commands** – Document the exact commands (e.g., `npm run test:unit`, `go test ./internal/foo`, `make contract-tests`) and any coverage thresholds, logging requirements, or observability hooks that must be met.
-7. **Collaboration & Adjustments** – Share the test plan with implementation and task owners for feedback, especially when coverage affects architecture decisions or requires new tooling.
-8. **Payload Update & Handoff** – Persist the final `testPlan` data in the payload, update relevant task statuses if QA work unblocks or blocks them, and alert Stage 5 (implementation) that validation guidance is ready.
+1. **Precondition Check** – Verify `requirement.summary`, `plan.steps`, and `tasks.items` are current and that every plan step already has leaf tasks. If data is missing or stale, pause and request updates before drafting QA guidance.
+2. **Coverage Inventory** – Enumerate acceptance criteria, plan steps, and leaf tasks. For each, capture observable behaviors (responses, events, telemetry, error states) plus existing tests/fixtures discovered via MCP or code search. Log gaps in `requirement.openQuestions`.
+3. **Traceable Coverage Matrix** – Build `testPlan.coverageMatrix` entries that map Requirement → Plan Step → Parent Task → Leaf Task → Behavior. Include evidence (file paths + lines, MCP findings) proving where coverage will live or what code it touches.
+4. **Test Level Strategy** – Assign the optimal test level(s) per behavior (unit, integration, contract, E2E, exploratory) and justify selections with risk/impact notes. Flag scenarios that require shared fixtures or specialized environments.
+5. **Scenario Detailing** – Author `testPlan.scenarios` with inputs, expected outputs, edge cases, failure modes, and status (ready/blocked/deferred). Include sequence/parallel indicators and reference the commands that will execute them.
+6. **Fixtures, Data, and Tooling** – Update `testPlan.fixtures` (and `testPlan.validationCommands` when needed) with datasets, mocks, diagnostics, and automation scripts required to run the scenarios. Prefer reusing discovered assets; document creation tasks when new assets are mandatory.
+7. **Readiness & Task Feedback** – Feed QA insights back into `tasks.statusSummary` and affected task notes (e.g., mark tasks blocked until fixtures exist). Outline mitigation or follow-up MCP work when coverage cannot be finalized yet.
+8. **Payload Update & Handoff** – Persist all updates in `handoff/payload.json`, validate referential integrity (IDs resolve), and notify Stage 5 (implementation) that the QA strategy is ready for execution.
 
 ## Outputs & Handoff
 - Traceable coverage matrix connecting requirements → plan steps → tasks → scenarios.
