@@ -30,12 +30,12 @@ description: Translate the approved requirement payload into a transparent, depe
 5. **Plan Drafting** – Convert research into 3–6 execution steps (e.g., baseline audit → design delta → implement backend → update tests → docs/rollout). Include owners, dependencies, and success signals per step.
 6. **Risk, Assumption & Dependency Tracking** – Call out blockers, sequencing requirements, and mitigations (feature flags, phased rollout, toggles). Attach verification artifacts (design doc sections, diagrams, spike outputs) to `plan.artifacts`.
 7. **Alignment & Publication** – Present the plan to stakeholders (user or implementation owner) for confirmation. Apply feedback while retaining traceability.
-8. **Payload Update & Handoff** – Persist the approved plan in the payload and notify Stage 3 that the execution plan is ready for test design.
+8. **Payload Update & Handoff** – Persist the approved plan in the payload and notify the Stage 3 owner (tasks) that the execution plan is ready for task decomposition.
 
 ## Outputs & Handoff
-- Ordered, evidence-backed `plan.steps` with explicit dependencies and owners.
+- Ordered, evidence-backed `plan.steps` with explicit dependencies and owners ready for Stage 3 task breakdown.
 - Documented risks, assumptions, and mitigation ideas.
-- References to supporting artifacts and standards needed by QA and implementation.
+- References to supporting artifacts and standards needed by tasks, QA, and implementation teams.
 
 ## Required User Input
 ```text
