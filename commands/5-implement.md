@@ -3,9 +3,10 @@ description: Execute the approved plan, task backlog, and test strategy to deliv
 ---
 
 ## Stage Overview
-- Execute only what is defined in the approved plan, hierarchical backlog (parent/leaf tasks), and QA strategy—flag any deviation instead of silently expanding scope.
-- Implement code, tests, docs, and automation to satisfy each leaf task’s acceptance criteria and its linked QA scenarios/commands.
-- Capture reproducible evidence (diffs, logs, command outputs) so Stage 6 can rerun validation without ambiguity.
+- Obey only the scope documented in the approved plan, hierarchical backlog, and QA strategy. When input artifacts disagree or appear incomplete, halt implementation, record the issue in `implementation.changes`, and notify upstream stages instead of silently patching gaps.
+- Build the code, tests, docs, and automation artifacts necessary to satisfy every leaf task’s acceptance criteria plus its mapped QA scenarios. Treat each leaf as a mini deliverable with its own design + validation notes.
+- Capture deterministic evidence (diffs, MCP command transcripts, logs, coverage) so Stage 6 can replay validation in a clean workspace with no additional context.
+- Operate autonomously: never pause for human confirmation mid-stage. Use MCP checkpointing and the payload log to record state transitions and recover from interruptions.
 
 ## Shared Payload Contract
 - **File:** `handoff/payload.json`
@@ -18,27 +19,37 @@ description: Execute the approved plan, task backlog, and test strategy to deliv
   - Optional but encouraged: append incremental status notes to `plan.steps[*]`, `tasks.items[*]`, and `testPlan.scenarios[*]`; never delete prior context.
 
 ## Tooling & Evidence Expectations
-- **MCP Reference First:** Prioritize MCP capabilities per `mcp/mcp_registry.md` and enforce the guardrails in `mcp/mcp_rules.md`. Use the registry’s preferred server for code analysis, editing, documentation, or automation before relying solely on local commands.
-- Desktop Commander for file edits (`write_file`, `edit_block`), searches, and command execution (`start_process`, `interact_with_process`).
-- Serena for symbol-aware edits and inspections (`get_symbols_overview`, `find_symbol`, `insert_before_symbol`, `replace_symbol_body`).
-- DeepWiki / Context7 for API references or framework changes encountered during implementation.
-- `mcp-shrimp-task-manager` (or equivalent) to keep task statuses synchronized as work completes.
-- Local automation: linting, formatting, unit/integration suites, contract tests, build packaging, and smoke tests executed via documented commands.
+- **MCP-first mandate:** Before running any local command, check `mcp/mcp_registry.md` for a capable tool and verify permissibility through `mcp/mcp_rules.md`. Document the rule ID or constraint evaluated in the payload when the choice is non-obvious.
+- Log every MCP invocation (tool name, intent, inputs, artifact references, success/failure) inside `implementation.commands[*].mcpLog`. If a tool is unavailable or fails twice, record the failure reason, fallback action, and linked rule allowing the fallback.
+- Desktop Commander remains the default for local file edits (`write_file`, `edit_block`), searches, listings, or shell processes. Persist the PID/command pairs so recovery flows can resume execution autonomously.
+- Serena handles semantic code navigation and modifications (`get_symbols_overview`, `find_symbol`, `insert_before_symbol`, `replace_symbol_body`); reference the exact symbol path in the payload evidence.
+- DeepWiki / Context7 provide authoritative documentation lookups; capture doc versions, permalinks, and snippets (≤25 words) per lookup.
+- `mcp-shrimp-task-manager` (or successor) keeps task statuses synchronized; mirror every task state change both in the tool and `tasks.items[*]`.
+- Execute lint/test/build commands exactly as captured in `testPlan.validationCommands`. When a command must be adapted (e.g., different fixture path), document the delta, rationale, and resulting artifacts.
 
+## Compliance & Safety Protocol
+- Validate every intended action—especially writes, migrations, or external interactions—against `mcp/mcp_rules.md`. Abort or quarantine steps that violate scope, data boundaries, or security posture; annotate `implementation.changes` with the blocked rule reference and recommended remediation.
+- On recoverable failures, perform exactly one automated retry. After the second failure, mark the task as `blocked`, log diagnostics, and continue with the next unblocked task to maintain autonomous progress.
+- Preserve least-privilege: request elevated permissions only when a rule explicitly authorizes it and the payload documents the justification. Record who/what granted escalation and its duration.
+- Maintain chronological, append-only logs capturing timestamps, executor identity, MCP/local command identifiers, and resulting artifacts for auditability.
 ## Workflow
-1. **Intake & Environment Confirmation** – Parse `$ARGUMENTS` plus the payload to identify the ordered list of leaf tasks, required repositories, coding standards, fixtures, and validation commands. Verify local tooling (language versions, linters, formatters) meets documented requirements; flag discrepancies in `implementation.changes`.
-2. **Baseline Recon** – Re-run targeted searches (Serena, Desktop Commander, MCP notes) referenced in prior stages to ensure no upstream drift. Capture current signatures, configs, feature flags, and related evidence before editing; store findings in `implementation.changes` with file + line references.
-3. **Leaf Task Execution** – Work task-by-task (respecting dependencies). For each leaf, restate the acceptance criteria, affected files/modules, and linked QA scenarios. Implement code/tests/docs in smallest possible increments, keeping changes scoped to that leaf and recording parent task + plan step IDs.
-4. **Aligned Testing & Quality Gates** – Execute the QA-authored commands (or equivalents) after each meaningful change. When commands differ, document why and update `testPlan.validationCommands` references. Capture pass/fail status, logs, and coverage metrics inside `implementation.tests` and `implementation.commands`.
-5. **Documentation, Telemetry & Ops Artifacts** – Update READMEs, runbooks, migration notes, dashboards, feature flag docs, and observability hooks promised by the linked tasks. Reference storage locations or dashboards so QA and acceptance can verify later.
-6. **Risk & Scope Management** – If a leaf task uncovers blockers or scope changes, immediately reflect that in `tasks.items[*].status`, `tasks.dependencies`, or `requirement.openQuestions`, and document mitigation steps. Do not silently change scope.
-7. **Evidence Packaging** – For each completed leaf task, record diffs, command outputs, manual validation notes, and any data changes in `implementation.changes`/`implementation.commands`. Note artifacts (screenshots, logs) and where they live.
-8. **Payload Update & Handoff** – Refresh all touched payload sections, ensure every completed leaf task is marked accordingly with references to commits/tests, and notify Stage 6 (acceptance) that validation can begin.
+1. **Intake & Environment Confirmation** – Parse `$ARGUMENTS` plus `handoff/payload.json` to assemble the dependency-ordered leaf task queue. Confirm `meta`, `plan`, `tasks`, and `testPlan` fields exist and are current; if any prerequisite is missing or stale, set the stage status to `blocked` and stop until upstream remediation is logged. Snapshot toolchain versions, lint/format rules, and environment variables; store the snapshot reference in `implementation.changes`.
+2. **Baseline Recon** – Rehydrate prior search context via Serena/Desktop Commander to detect upstream drift (new commits, config changes, feature flags). Capture file hashes, symbol signatures, or schema versions before editing and attach them to the relevant plan/test IDs in the payload.
+3. **Leaf Task Execution Loop** – Iterate through the leaf queue autonomously:
+   - Restate the task’s acceptance criteria, dependencies, and QA hooks at execution time.
+   - Select the appropriate MCP toolchain; document rule compliance and the exact commands/scripts used.
+   - Implement code/tests/docs in the minimal diff necessary, commit artifacts to source control (or stage them) if mandated, and record file + line references.
+   - Upon completion (or failure), update the task status in both `tasks.items[*]` and the MCP task tracker.
+4. **Testing & Quality Gates** – Trigger the validation commands linked to the current leaf. Attach raw logs, summarized outcomes, coverage deltas, and artifact URIs to both `implementation.tests` and `implementation.commands`. When a test fails, capture the triage steps, retry attempt, and final disposition (fixed, flaky, blocked).
+5. **Documentation, Telemetry & Ops Artifacts** – Enforce documentation deliverables promised by the plan: READMEs, runbooks, migrations, dashboards, feature flags, metrics. Document where each artifact lives (path, dashboard URL, dataset) and how Stage 6 should inspect it.
+6. **Risk & Scope Management** – For any newly discovered risk, open question, or dependency shift, immediately update `requirement.openQuestions`, `tasks.dependencies`, or `plan.steps[*].notes`. Record mitigation steps and responsible follow-ups; do not expand scope without explicit upstream approval captured in the payload.
+7. **Evidence Packaging & Payload Sync** – After each leaf, append the associated diffs, logs, MCP transcripts, and validation notes to `implementation.*`. Before exiting the stage, ensure every payload section touched includes timestamps, executor identity, and pointers to artifacts so acceptance can replay the work deterministically.
 
 ## Outputs & Handoff
-- Implementation summary mapping changes to requirement/plan/task/test references.
-- Up-to-date automated and manual test evidence demonstrating success.
-- Clear instructions for rerunning validation and any outstanding follow-up items before acceptance.
+- Implementation summary mapping each change/test artifact to the originating requirement, plan step, task, and QA scenario ID.
+- Comprehensive test ledger covering automated and manual validations, their outcomes, retry history, and artifact locations.
+- Explicit rerun instructions (commands, environment vars, seed data, fixtures) plus any outstanding risks or TODOs Stage 6 must resolve prior to acceptance.
+- MCP call ledger summarizing every tool interaction, fallback, and result for auditability.
 
 ## Required User Input
 ```text
