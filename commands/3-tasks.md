@@ -25,18 +25,18 @@ description: Bridge strategic planning and execution by translating the approved
 - Record every MCP/local search (tool, query, findings) referenced inside task notes so downstream owners inherit the research trail.
 
 ## Workflow
-1. **Input Validation & Context Sync** – Load `$ARGUMENTS`, confirm `requirement.summary` and `plan.steps` freshness, and capture any stakeholder sequencing constraints. Raise blockers in `requirement.openQuestions` before continuing.
-2. **Plan Decomposition Strategy** – For each `plan.steps[*]`, outline the expected deliverables, repos, and validation targets, then decide the depth of decomposition needed to reach atomic work units. Document this strategy in task notes for traceability.
-3. **Hierarchical Task Expansion** – Create parent tasks that mirror the plan intent, then iteratively split them into sequential child tasks until each leaf:
-   - Can be executed without additional scoping research.
-   - Targets a bounded code surface (files, modules, APIs) and verification method.
-   - Produces a measurable artifact (PR, doc, script, test) and acceptance checklist.
+1. **Input Validation & Context Sync** – Load `$ARGUMENTS`, confirm `requirement.summary` and `plan.steps` freshness, and capture stakeholder sequencing constraints. Raise blockers in `requirement.openQuestions` before writing any tasks.
+2. **Decomposition Strategy** – For each `plan.steps[*]`, outline deliverables, repos, and validation targets, then decide how deep to split to achieve atomic work. Document the strategy so reviewers see why the tree is shaped the way it is.
+3. **Hierarchical Expansion** – Create parent tasks mirroring each plan step, then split into sequential children until every leaf:
+   - Needs no further scoping.
+   - Targets a bounded code surface plus verification method.
+   - Outputs a measurable artifact (PR, doc, migration, test) and acceptance checklist.
    Record parent-child IDs so automation can reconstruct ancestry.
-4. **Task Definition & Evidence** – For every task, capture Who/What/Where/Why, acceptance tests, telemetry or logging hooks, plus concrete evidence references (file paths with line numbers, MCP results, doc sections). Note any required MCP tooling or scripts.
-5. **Dependencies, Ordering & Readiness** – Assign effort/complexity bands, owners, and statuses. Populate `tasks.dependencies` with prerequisites (other tasks, environments, external approvals) and highlight mitigations or fallback options. Order tasks according to critical path and mark parallelizable streams.
-6. **Quality Hooks** – Embed verification recipes (commands, datasets, telemetry checks) so each task is reviewable in isolation. Ensure QA hooks roll up to the originating plan acceptance criteria.
-7. **Backlog Publication** – Summarize ready/blocked/deferred counts, ensure IDs are unique, and confirm every plan step has at least one ready leaf task. Provide slicing metadata (component, epic, owner) for downstream automation.
-8. **Payload Update & Handoff** – Persist updates to `handoff/payload.json`, verifying parent-child linkage fields and dependency graphs are machine-readable. Notify Stage 4 (QA) that the backlog is ready for coverage design.
+4. **Task Definition & Evidence** – For every task, capture Who/What/Where/Why, acceptance tests, telemetry/logging hooks, and explicit evidence references (file paths + lines, MCP results, docs). Note required MCP tooling or scripts.
+5. **Dependencies & Readiness** – Assign effort bands, owners, and statuses. Populate `tasks.dependencies` with prerequisites (other tasks, environments, approvals) and call out mitigations or fallbacks. Order tasks by critical path and mark parallel streams.
+6. **Quality Hooks** – Embed verification recipes (commands, datasets, telemetry checks) so each task is reviewable in isolation and maps back to the originating plan acceptance criteria.
+7. **Backlog Publication** – Summarize ready/blocked/deferred counts, ensure IDs are unique, and confirm every plan step has at least one ready leaf. Provide slicing metadata (component, epic, owner) for automation consumers.
+8. **Payload Update & Handoff** – Persist updates to `handoff/payload.json`, verify linkage fields and dependency graphs are machine-readable, then notify Stage 4 that QA design can begin.
 
 ## Outputs & Handoff
 - Structured `tasks.items` backlog with traceability to requirements and plan steps.

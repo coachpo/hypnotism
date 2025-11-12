@@ -3,10 +3,10 @@ description: Execute the approved plan, task backlog, and test strategy to deliv
 ---
 
 ## Stage Overview
-- Obey only the scope documented in the approved plan, hierarchical backlog, and QA strategy. When input artifacts disagree or appear incomplete, halt implementation, record the issue in `implementation.changes`, and notify upstream stages instead of silently patching gaps.
-- Build the code, tests, docs, and automation artifacts necessary to satisfy every leaf task’s acceptance criteria plus its mapped QA scenarios. Treat each leaf as a mini deliverable with its own design + validation notes.
-- Capture deterministic evidence (diffs, MCP command transcripts, logs, coverage) so Stage 6 can replay validation in a clean workspace with no additional context.
-- Operate autonomously: never pause for human confirmation mid-stage. Use MCP checkpointing and the payload log to record state transitions and recover from interruptions.
+- Execute **only** the scope documented in the approved plan, backlog, and QA strategy. If inputs conflict or appear incomplete, stop, log the issue in `implementation.changes`, and notify upstream owners instead of silently patching gaps.
+- Build the code, tests, docs, and automation artifacts needed for every leaf task’s acceptance criteria and mapped QA scenarios. Treat each leaf as a self-contained deliverable with its own design + validation notes.
+- Capture deterministic evidence (diffs, MCP command transcripts, logs, coverage) so Stage 6 can replay validation in a clean workspace with zero guesswork.
+- Operate autonomously—no mid-stage approval loops. Use MCP checkpointing plus payload logs to record state transitions and support recovery.
 
 ## Shared Payload Contract
 - **File:** `handoff/payload.json`
@@ -19,19 +19,20 @@ description: Execute the approved plan, task backlog, and test strategy to deliv
   - Optional but encouraged: append incremental status notes to `plan.steps[*]`, `tasks.items[*]`, and `testPlan.scenarios[*]`; never delete prior context.
 
 ## Tooling & Evidence Expectations
-- **MCP-first mandate:** Before running any local command, check `mcp/mcp_registry.md` for a capable tool and verify permissibility through `mcp/mcp_rules.md`. Document the rule ID or constraint evaluated in the payload when the choice is non-obvious.
-- Log every MCP invocation (tool name, intent, inputs, artifact references, success/failure) inside `implementation.commands[*].mcpLog`. If a tool is unavailable or fails twice, record the failure reason, fallback action, and linked rule allowing the fallback.
-- Desktop Commander remains the default for local file edits (`write_file`, `edit_block`), searches, listings, or shell processes. Persist the PID/command pairs so recovery flows can resume execution autonomously.
-- IDE/LSP tooling handles semantic code navigation and modifications (workspace symbol search, call hierarchies, structural edits); reference the exact symbol path or file/line pairing in the payload evidence.
-- DeepWiki / Context7 provide authoritative documentation lookups; capture doc versions, permalinks, and snippets (≤25 words) per lookup.
-- `mcp-shrimp-task-manager` (or successor) keeps task statuses synchronized; mirror every task state change both in the tool and `tasks.items[*]`.
-- Execute lint/test/build commands exactly as captured in `testPlan.validationCommands`. When a command must be adapted (e.g., different fixture path), document the delta, rationale, and resulting artifacts.
+- **MCP-first mandate:** Before running any local command, consult `mcp/mcp_registry.md` and `mcp/mcp_rules.md`. Note the governing rule ID in the payload whenever the tooling choice is not obvious.
+- Log every MCP invocation (tool, intent, inputs, artifacts, success/failure) in `implementation.commands[*].mcpLog`. If a tool is unavailable or fails twice, record the failure reason, fallback action, and the rule that allowed the fallback.
+- Use Desktop Commander for local edits (`write_file`, `edit_block`), searches, listings, or shell processes. Persist PID/command pairs so you can resume from an interrupted state.
+- Lean on IDE/LSP tooling for semantic navigation (symbols, call hierarchies) and cite exact file+line references in the payload evidence.
+- Pull authoritative documentation via DeepWiki / Context7; record doc versions, permalinks, and ≤25-word snippets per lookup.
+- Keep `mcp-shrimp-task-manager` (or successor) mirrors in sync with `tasks.items[*]` whenever task status changes.
+- Execute lint/test/build commands exactly as documented in `testPlan.validationCommands`. If you must adapt a command (fixture path, env var), capture the delta, rationale, and resulting artifacts.
 
 ## Compliance & Safety Protocol
 - Validate every intended action—especially writes, migrations, or external interactions—against `mcp/mcp_rules.md`. Abort or quarantine steps that violate scope, data boundaries, or security posture; annotate `implementation.changes` with the blocked rule reference and recommended remediation.
 - On recoverable failures, perform exactly one automated retry. After the second failure, mark the task as `blocked`, log diagnostics, and continue with the next unblocked task to maintain autonomous progress.
 - Preserve least-privilege: request elevated permissions only when a rule explicitly authorizes it and the payload documents the justification. Record who/what granted escalation and its duration.
 - Maintain chronological, append-only logs capturing timestamps, executor identity, MCP/local command identifiers, and resulting artifacts for auditability.
+
 ## Workflow
 1. **Intake & Environment Confirmation** – Parse `$ARGUMENTS` plus `handoff/payload.json` to assemble the dependency-ordered leaf task queue. Confirm `meta`, `plan`, `tasks`, and `testPlan` fields exist and are current; if any prerequisite is missing or stale, set the stage status to `blocked` and stop until upstream remediation is logged. Snapshot toolchain versions, lint/format rules, and environment variables; store the snapshot reference in `implementation.changes`.
 2. **Baseline Recon** – Rehydrate prior search context via Desktop Commander plus IDE/LSP indexing to detect upstream drift (new commits, config changes, feature flags). Capture file hashes, symbol signatures, or schema versions before editing and attach them to the relevant plan/test IDs in the payload.

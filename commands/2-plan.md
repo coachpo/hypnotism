@@ -3,9 +3,9 @@ description: Translate the approved requirement payload into a transparent, depe
 ---
 
 ## Stage Overview
-- Confirm goals, constraints, and acceptance criteria captured in Stage 1.
-- Decide whether detailed planning is required; document rationale either way.
-- Produce an ordered plan with evidence-backed steps, risks, owners, and expected validation artifacts.
+- Re-confirm goals, constraints, and acceptance criteria captured in Stage 1.
+- Decide whether detailed planning is required and document the rationale either way.
+- Publish an ordered plan with evidence-backed steps, risks, owners, and expected validation artifacts.
 
 ## Shared Payload Contract
 - **File:** `handoff/payload.json`
@@ -23,14 +23,14 @@ description: Translate the approved requirement payload into a transparent, depe
 - Sequential Thinking to structure reasoning and expose assumptions before locking the plan.
 
 ## Workflow
-1. **Trigger & Readiness Check** – Load the payload provided in `$ARGUMENTS`. If required requirement fields are missing, halt and request Stage 1 completion.
-2. **Triviality Assessment** – Run at least one repo reconnaissance pass for the highlighted domain. If the change is trivial, log a single `plan.steps` item explaining why detailed planning is unnecessary; otherwise continue.
-3. **Goal & Constraint Confirmation** – Restate desired behavior, SLAs, rollout expectations, and quality bars using the requirement payload. Move any contradictions into `plan.risks`.
-4. **Context Gathering & Evidence Logging** – Explore the codebase and documentation to understand current implementations, integrations, telemetry, and tests. Capture file + line references for each finding so plan steps cite concrete evidence.
-5. **Plan Drafting** – Convert research into 3–6 execution steps (e.g., baseline audit → design delta → implement backend → update tests → docs/rollout). Include owners, dependencies, and success signals per step.
-6. **Risk, Assumption & Dependency Tracking** – Call out blockers, sequencing requirements, and mitigations (feature flags, phased rollout, toggles). Attach verification artifacts (design doc sections, diagrams, spike outputs) to `plan.artifacts`.
-7. **Alignment & Publication** – Present the plan to stakeholders (user or implementation owner) for confirmation. Apply feedback while retaining traceability.
-8. **Payload Update & Handoff** – Persist the approved plan in the payload and notify the Stage 3 owner (tasks) that the execution plan is ready for task decomposition.
+1. **Trigger & Readiness Check** – Load the payload passed via `$ARGUMENTS`. If `requirement.summary` or `requirement.acceptanceCriteria` are missing/stale, stop and request Stage 1 completion.
+2. **Triviality Gate** – Run at least one repo reconnaissance pass for the impacted domain. If work is trivial, log a single `plan.steps` entry that justifies skipping detailed planning; otherwise continue.
+3. **Goal & Constraint Confirmation** – Restate desired behaviors, SLAs, rollout strategy, and quality bars. Push any contradictions or unknowns into `plan.risks`.
+4. **Context & Evidence Sweep** – Explore the codebase and documentation to understand existing behavior, integrations, telemetry, and validation. Store file+line citations for each insight so plan steps can reference hard evidence.
+5. **Plan Drafting** – Convert findings into 3–6 execution steps (baseline audit → design deltas → implementation streams → validation → rollout). Each step captures owner, dependencies, success signals, and supporting artifacts.
+6. **Risk / Assumption / Dependency Tracking** – Document blockers, sequencing requirements, mitigations, and artifacts (diagrams, spikes) inside `plan.risks` and `plan.artifacts`.
+7. **Alignment Loop** – Share the draft plan with stakeholders, apply feedback, and keep traceability for any revisions.
+8. **Payload Sync & Handoff** – Persist the approved plan and alert Stage 3 that the decomposition phase may begin.
 
 ## Outputs & Handoff
 - Ordered, evidence-backed `plan.steps` with explicit dependencies and owners ready for Stage 3 task breakdown.
