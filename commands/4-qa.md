@@ -7,6 +7,10 @@ description: Convert the shared requirement + plan + task backlog into a concret
 - Define the right mix of unit, integration, contract, end-to-end, and exploratory tests, including justification and owner per scenario.
 - Produce fixtures, scenario tables, and repeatable execution commands so implementation can pick up any task and know exactly how to validate it in isolation and in-system.
 
+## Commander Doctrine
+- Design coverage with zero regard for backward compatibility; legacy behaviors are out of scope.
+- Reject any QA approach that depends on shim code or compatibility harnesses.
+
 ## Shared Payload Contract
 - **File:** `handoff/payload.json`
 - **Required before starting:** `requirement.summary`, `plan.steps` (non-empty), `tasks.items` (non-empty backlog with parent-child linkage).

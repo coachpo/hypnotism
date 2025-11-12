@@ -7,6 +7,10 @@ description: Bridge strategic planning and execution by translating the approved
 - Maintain explicit traceability: every task inherits its ancestor plan step IDs plus requirement references, acceptance criteria anchors, and QA hooks.
 - Output a dependency-aware backlog (owners, estimates, statuses) that downstream stages can consume without rediscovering context or guessing ordering.
 
+## Commander Doctrine
+- Omit backward compatibility from all task definitions; assume only the new behavior matters.
+- Do not create tasks that introduce shim code, adapters, or compatibility bridges.
+
 ## Shared Payload Contract
 - **File:** `handoff/payload.json`
 - **Required before starting:** `requirement.summary`, `plan.steps` (non-empty).

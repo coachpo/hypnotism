@@ -7,6 +7,10 @@ description: Translate the approved requirement payload into a transparent, depe
 - Decide whether detailed planning is required and document the rationale either way.
 - Publish an ordered plan with evidence-backed steps, risks, owners, and expected validation artifacts.
 
+## Commander Doctrine
+- Exclude backward compatibility from all planning decisions; legacy consumers must not influence scope.
+- Do not propose, design, or rely on shim code to bridge behaviors.
+
 ## Shared Payload Contract
 - **File:** `handoff/payload.json`
 - **Required before starting:** `requirement.summary`, `requirement.acceptanceCriteria`.

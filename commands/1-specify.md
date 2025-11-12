@@ -7,6 +7,10 @@ description: Convert raw stakeholder input into an actionable, source-backed req
 - Capture unknowns, risks, and prior art once so planning, QA, and implementation inherit the same evidence base.
 - Produce a refreshed `handoff/payload.json` that explains **what to build, why it matters, and how success will be judged.**
 
+## Commander Doctrine
+- Ignore backward compatibility considerations entirely; do not evaluate legacy interfaces or migration paths.
+- Never introduce shim code or compatibility layers during this stage.
+
 ## Shared Payload Contract
 - **File:** `handoff/payload.json`
 - **Required before starting:** none (Stage 1 creates/refreshes the payload).

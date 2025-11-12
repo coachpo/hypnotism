@@ -7,6 +7,10 @@ description: Independently verify the delivered work using the supplied payload,
 - Compare observed behavior against requirements, plan steps, parent/leaf tasks, and QA scenarios/commands to confirm nothing regressed or escaped detection.
 - Deliver a defensible go/no-go decision backed by evidence, defect details, and rerun instructions.
 
+## Commander Doctrine
+- Validate only the new behavior without evaluating backward compatibility expectations.
+- Reject any solution that introduces shim code or compatibility layers during implementation or testing.
+
 ## Shared Payload Contract
 - **File:** `handoff/payload.json`
 - **Required before starting:** `requirement.summary`, `plan.steps`, `tasks.items` (with parent-child linkage), `testPlan.scenarios`, `testPlan.validationCommands`, `implementation.changes`, `implementation.tests`, `implementation.commands` (with evidence references).

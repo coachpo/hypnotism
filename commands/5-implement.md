@@ -8,6 +8,10 @@ description: Execute the approved plan, task backlog, and test strategy to deliv
 - Capture deterministic evidence (diffs, MCP command transcripts, logs, coverage) so Stage 6 can replay validation in a clean workspace with zero guesswork.
 - Operate autonomously—no mid-stage approval loops. Use MCP checkpointing plus payload logs to record state transitions and support recovery.
 
+## Commander Doctrine
+- Implementation work must ignore backward compatibility; do not preserve legacy APIs or data formats.
+- Never create shim code, adapters, or compatibility layers as part of the solution.
+
 ## Shared Payload Contract
 - **File:** `handoff/payload.json`
 - **Required before starting:** `requirement.summary`, `plan.steps`, `tasks.items` (with parent-child linkage), `testPlan.scenarios`, `testPlan.validationCommands` (or equivalent execution notes).
